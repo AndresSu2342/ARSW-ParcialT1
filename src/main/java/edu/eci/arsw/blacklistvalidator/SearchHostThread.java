@@ -13,6 +13,8 @@ public class SearchHostThread extends Thread{
 
     private List<Integer> blackListOcurrences = new LinkedList<>();
 
+    private int NListas = 0;
+
     public SearchHostThread(String ipaddress, int starthost, int finahost){
         this.startNHost = starthost;
         this.finalNHost = finahost;
@@ -22,7 +24,10 @@ public class SearchHostThread extends Thread{
     public void run() {
         HostBlackListsValidator validator = new HostBlackListsValidator();
         blackListOcurrences = validator.checkHost(ipAddress, startNHost, finalNHost);
+        NListas = validator.getNListasRevisadas();
     }
 
     public List<Integer> getBlackListOcurrences() { return blackListOcurrences; }
+
+    public synchronized int getNListas() { return NListas; }
 }

@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  * @author hcadavid
  */
 public class HostBlackListsValidator {
+    private int NListasRevisadas = 0;
 
     private static final int BLACK_LIST_ALARM_COUNT=5;
     
@@ -69,6 +70,7 @@ public class HostBlackListsValidator {
         int startNHost = 0;
         int intervalNHost = skds.getRegisteredServersCount() / NThreads;
         int finalNHost = intervalNHost;
+        int listasRevisadas = 0;
 
         for (int i=0;i<NThreads;i++){
             SearchHostThread thread = new SearchHostThread(ipaddress, startNHost, finalNHost);
@@ -92,6 +94,7 @@ public class HostBlackListsValidator {
             if (blackListOcurrences.size()>=BLACK_LIST_ALARM_COUNT){
                 for (SearchHostThread threadAll: Threads) {
                     threadAll.stop();
+                    listasRevisadas += threadAll.getNListas();
                 }
                 skds.reportAsNotTrustworthy(ipaddress);
                 break;
@@ -100,7 +103,7 @@ public class HostBlackListsValidator {
         if (blackListOcurrences.size()<BLACK_LIST_ALARM_COUNT) {
             skds.reportAsTrustworthy(ipaddress);
         }
-
+        System.out.println("Número de listas negras revisadas: " + listasRevisadas);
         return blackListOcurrences;
     }
 
@@ -113,19 +116,22 @@ public class HostBlackListsValidator {
         HostBlacklistsDataSourceFacade skds=HostBlacklistsDataSourceFacade.getInstance();
 
         for (int i=starthost;i<=finahost && ocurrencesCount<BLACK_LIST_ALARM_COUNT;i++){
-
+            NListasRevisadas++;
             if (skds.isInBlackListServer(i, ipaddress)){
 
                 blackListOcurrences.add(i);
 
                 ocurrencesCount++;
             }
+
         }
 
         LOG.log(Level.INFO, "Checked Black Lists:{0} of {1}", new Object[]{starthost, finahost});
 
         return blackListOcurrences;
     }
+
+    public int getNListasRevisadas() { return NListasRevisadas; }
 
 
     private static final Logger LOG = Logger.getLogger(HostBlackListsValidator.class.getName());
